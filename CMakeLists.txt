@@ -10,6 +10,13 @@ endif()
 
 project(papertrain C CXX)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SDL2_mixer REQUIRED IMPORTED_TARGET SDL2_mixer)
+pkg_check_modules(libzip REQUIRED IMPORTED_TARGET libzip)
+pkg_check_modules(sndfile REQUIRED IMPORTED_TARGET sndfile)
+pkg_check_modules(vorbisfile REQUIRED IMPORTED_TARGET vorbisfile)
+pkg_check_modules(openal REQUIRED IMPORTED_TARGET openal)
+pkg_check_modules(freetype2 REQUIRED IMPORTED_TARGET freetype2)
 set(VITA_APP_NAME "Paper Train Reloaded")
 set(VITA_TITLEID  "PPERTRAIN")
 set(VITA_MKSFOEX_FLAGS "-d ATTRIBUTE2=12")
@@ -25,8 +32,16 @@ add_executable(papertrain
   loader/ctype_patch.c
 )
 
+set_target_properties(papertrain PROPERTIES LINKER_LANGUAGE CXX)
+
 target_link_libraries(papertrain
   -Wl,--whole-archive pthread -Wl,--no-whole-archive
+  PkgConfig::SDL2_mixer
+  PkgConfig::libzip
+  PkgConfig::sndfile
+  PkgConfig::vorbisfile
+  PkgConfig::openal
+  PkgConfig::freetype2
   SDL2_mixer
   SDL2
   openal
@@ -73,7 +88,6 @@ target_link_libraries(papertrain
   SceFios2_stub
   SceGxm_stub
   SceIme_stub
-  SceLibcBridge_stub
   SceShaccCg_stub
   SceSysmodule_stub
   ScePower_stub
@@ -81,7 +95,7 @@ target_link_libraries(papertrain
   SceMotion_stub
   SceHid_stub
   SceVshBridge_stub
-  SceKernelDmacmgr_stub
+  SceKernelDmacMgr_stub
 )
 
 vita_create_self(eboot.bin papertrain UNSAFE)
@@ -93,3 +107,5 @@ vita_create_vpk(papertrain.vpk ${VITA_TITLEID} eboot.bin
        ${CMAKE_SOURCE_DIR}/livearea/bg0.png sce_sys/livearea/contents/bg0.png
        ${CMAKE_SOURCE_DIR}/livearea/template.xml sce_sys/livearea/contents/template.xml
 )
+
+set_property(SOURCE loader/so_util.c APPEND PROPERTY COMPILE_OPTIONS -Wno-error=return-mismatch -Wno-error=incompatible-pointer-types)
